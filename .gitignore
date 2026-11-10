@@ -1,0 +1,67 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+artifacts/
+
+# Local release staging (the DLL is attached to GitHub Releases, not committed)
+release/
+dist/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.paket/paket.exe
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Logs and crash dumps
+*.log
+*.dmp
+*.mdmp
+LogOutput.log*
+
+# Local environment and secrets
+.env
+.env.*
+*.secret
+
+# Analysis/tooling artifacts used while developing, not part of the plugin
+.tools/
+decompiled/
+.repo-check/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini

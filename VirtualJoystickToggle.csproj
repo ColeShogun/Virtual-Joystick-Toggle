@@ -1,0 +1,114 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Nuclear Option install path. This is intentionally not hardcoded.
+
+    Pass it on the command line:
+      dotnet build VirtualJoystickToggle.csproj -c Release -p:GameDir="C:\Program Files (x86)\Steam\steamapps\common\Nuclear Option"
+
+    Or set the NUCLEAR_OPTION_DIR environment variable:
+      set NUCLEAR_OPTION_DIR=C:\Program Files (x86)\Steam\steamapps\common\Nuclear Option
+
+    Building requires a local Nuclear Option installation for its managed
+    assemblies. No game or BepInEx binaries are copied into the output.
+  -->
+  <PropertyGroup>
+    <GameDir Condition="'$(GameDir)' == ''">$(NUCLEAR_OPTION_DIR)</GameDir>
+    <ManagedDir>$(GameDir)\NuclearOption_Data\Managed</ManagedDir>
+    <BepInExCoreDir>$(GameDir)\BepInEx\core</BepInExCoreDir>
+
+    <!-- Unity 2022.3's assemblies are built against .NET Standard 2.1. -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <AssemblyName>VirtualJoystickToggle</AssemblyName>
+    <RootNamespace>VirtualJoystickToggle</RootNamespace>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Description>A BepInEx 5 mod for Nuclear Option that toggles the built-in virtual joystick (mouse flight) with a configurable mouse button or keyboard key.</Description>
+    <Copyright>Copyright (c) 2026 ColeShogun</Copyright>
+    <RepositoryUrl>https://github.com/ColeShogun/Virtual-Joystick-Toggle</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Target Name="ValidateGameDir" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(GameDir)' == ''"
+           Text="GameDir is not set. Pass -p:GameDir=&quot;C:\Program Files (x86)\Steam\steamapps\common\Nuclear Option&quot; or set NUCLEAR_OPTION_DIR. A local Nuclear Option install is required to build." />
+    <Error Condition="'$(GameDir)' != '' and !Exists('$(GameDir)\NuclearOption_Data\Managed\Assembly-CSharp.dll')"
+           Text="Assembly-CSharp.dll was not found under '$(GameDir)'. Check that GameDir points to the Nuclear Option install folder (the one containing NuclearOption_Data)." />
+    <Error Condition="'$(GameDir)' != '' and !Exists('$(BepInExCoreDir)\BepInEx.dll')"
+           Text="BepInEx.dll was not found under '$(BepInExCoreDir)'. Install BepInEx 5.4.x x64 into the game folder before building." />
+  </Target>
+
+  <ItemGroup>
+    <!-- BepInEx 5.4.x plugin API. Do not copy into the output. -->
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- Game code (PlayerSettings, GameManager, Pilot, PilotPlayerState, FlightHud, GameplayUI...). -->
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- Unity 2022 modular assemblies. UnityEngine.dll is the facade BepInEx itself
+         was compiled against, so it is required alongside the modules. -->
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- Required only so the compiler can resolve types reached through game class members. -->
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Mirage">
+      <HintPath>$(ManagedDir)\Mirage.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Mirage.Components">
+      <HintPath>$(ManagedDir)\Mirage.Components.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>$(ManagedDir)\Rewired_Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    Optional install step. Normal builds never touch the game folder.
+      dotnet build -c Release -p:DeployToGame=true -p:GameDir="..."
+  -->
+  <Target Name="DeployToGame" AfterTargets="Build" Condition="'$(DeployToGame)' == 'true'">
+    <MakeDir Directories="$(GameDir)\BepInEx\plugins\VirtualJoystickToggle" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\BepInEx\plugins\VirtualJoystickToggle" />
+    <Message Text="Installed $(TargetFileName) to $(GameDir)\BepInEx\plugins\VirtualJoystickToggle" Importance="high" />
+  </Target>
+
+</Project>
